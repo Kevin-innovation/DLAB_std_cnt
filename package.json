@@ -20,7 +20,7 @@
   },
   "scripts": {
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
+    "deploy": "gh-pages --dist build --branch gh-pages --message 'Deploy React app to GitHub Pages [skip ci]' --repo https://github.com/Kevin-innovation/DLAB_std_cnt.git",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
