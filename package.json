@@ -19,7 +19,7 @@
     "web-vitals": "^2.1.4"
   },
 
-  "homepage": "https://kevin-innovation.github.io/DLAB_std_cnt/",
+  "homepage": "https://kevin-innovation.github.io/DLAB_std_cnt",
   "scripts": {
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
