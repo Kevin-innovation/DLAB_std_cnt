@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Container, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import AttendanceButton from './components/AttendanceButton';
 import ManagementPanel from './components/ManagementPanel';
 import { Provider } from 'react-redux';
