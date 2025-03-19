@@ -186,7 +186,7 @@ function ManagementPanel() {
           </IconButton>
           <Box
             component="img"
-            src="/11.png"
+            src={process.env.PUBLIC_URL + '/logo.png'}
             alt="DLAB Logo"
             sx={{
               height: 32,

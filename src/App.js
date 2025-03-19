@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Container, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AttendanceButton from './components/AttendanceButton';
 import ManagementPanel from './components/ManagementPanel';
 import { Provider } from 'react-redux';
@@ -64,7 +64,7 @@ function App() {
     <Provider store={store}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Router>
+        <Router basename={process.env.PUBLIC_URL}>
           <Box
             sx={{
               minHeight: '100vh',

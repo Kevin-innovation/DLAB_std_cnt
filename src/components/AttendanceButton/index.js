@@ -81,7 +81,7 @@ function AttendanceButton() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box
             component="img"
-            src="/11.png"
+            src={process.env.PUBLIC_URL + '/logo.png'}
             alt="DLAB Logo"
             sx={{
               height: 32,
