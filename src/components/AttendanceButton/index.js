@@ -1,38 +1,61 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, IconButton, Typography, Button, List, ListItem, ListItemText, Chip } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { markAttendance, selectAttendedStudents } from '../../redux/slices/attendanceSlice';
+import { markAttendance, selectAttendedStudents, selectDailyAttendance, selectWeeklyAttendance } from '../../redux/slices/attendanceSlice';
 
 const PASSWORD = '1234'; // 관리자 비밀번호
 
 function AttendanceButton() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [dateOffset, setDateOffset] = useState(0); // 0: 오늘, -1: 어제, 1: 내일
   const todayCount = useSelector(state => state.attendance.todayCount || 0);
   const attendedStudents = useSelector(selectAttendedStudents);
+  const weeklyAttendance = useSelector(selectWeeklyAttendance);
   const students = JSON.parse(localStorage.getItem('students') || '[]');
 
-  // 현재 날짜와 시간 정보
-  const now = new Date();
+  // 날짜 계산 함수
+  const getTargetDate = (offset) => {
+    const date = new Date();
+    date.setDate(date.getDate() + offset);
+    return date;
+  };
+
+  // 선택된 날짜 정보
+  const targetDate = getTargetDate(dateOffset);
   const days = ['일', '월', '화', '수', '목', '금', '토'];
-  const currentDay = days[now.getDay()];
-  const currentDate = `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`;
-  const currentTime = now.toLocaleTimeString('ko-KR', {
+  const currentDay = days[targetDate.getDay()];
+  const currentDate = `${targetDate.getFullYear()}년 ${targetDate.getMonth() + 1}월 ${targetDate.getDate()}일`;
+  const currentTime = targetDate.toLocaleTimeString('ko-KR', {
     hour: '2-digit',
     minute: '2-digit',
     hour12: true
   });
 
-  // 오늘의 학생 목록
-  const todayStudents = students
+  // 해당 날짜의 학생 목록
+  const targetDayStudents = students
     .filter(student => student.day === currentDay)
     .sort((a, b) => {
       const timeA = a.time.split(':').map(Number);
       const timeB = b.time.split(':').map(Number);
       return (timeA[0] * 60 + timeA[1]) - (timeB[0] * 60 + timeB[1]);
     });
+
+  // 선택된 날짜의 출석 기록 가져오기
+  const targetDateString = targetDate.toLocaleDateString();
+  const dailyAttendance = useSelector(selectDailyAttendance(targetDateString));
+
+  // 해당 요일의 주간 출석 수 가져오기
+  const weeklyCount = weeklyAttendance[currentDay] || 0;
+
+  // 날짜 이동 핸들러
+  const handleDateChange = (direction) => {
+    setDateOffset(prev => prev + direction);
+  };
 
   const handleSettingsClick = () => {
     const password = prompt('비밀번호를 입력하세요:');
@@ -44,10 +67,10 @@ function AttendanceButton() {
   };
 
   const handleAttendanceClick = (student) => {
-    if (window.confirm('출석을 체크하시겠습니까?')) {
-      dispatch(markAttendance(student));
-      alert(`${student.name} 학생 출석이 완료되었습니다.${student.isOneOnOne ? ' (1:1 수업)' : ''}`);
+    if (dateOffset !== 0) {
+      return;
     }
+    dispatch(markAttendance(student));
   };
 
   return (
@@ -122,6 +145,39 @@ function AttendanceButton() {
           mt: 3,
         }}
       >
+        {/* Date Navigation */}
+        <Box sx={{ 
+          width: '100%', 
+          maxWidth: 600, 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          mb: 2 
+        }}>
+          <IconButton 
+            onClick={() => handleDateChange(-1)}
+            sx={{ color: 'primary.main' }}
+          >
+            <ArrowBackIcon />
+          </IconButton>
+          
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              {currentDate}
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              {currentDay}요일
+            </Typography>
+          </Box>
+          
+          <IconButton 
+            onClick={() => handleDateChange(1)}
+            sx={{ color: 'primary.main' }}
+          >
+            <ArrowForwardIcon />
+          </IconButton>
+        </Box>
+
         {/* Date and Time Display */}
         <Box
           sx={{
@@ -175,28 +231,22 @@ function AttendanceButton() {
             오늘의 수업
           </Typography>
           <List>
-            {todayStudents.map((student) => (
+            {targetDayStudents.map((student) => (
               <ListItem
                 key={student.id}
                 sx={{
-                  borderBottom: '1px solid #DBDBDB',
-                  '&:last-child': {
-                    borderBottom: 'none',
-                  },
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: 1,
+                  bgcolor: 'background.paper',
+                  borderRadius: 1,
+                  boxShadow: 1,
                 }}
               >
                 <ListItemText
                   primary={student.name}
-                  secondary={student.time}
-                  sx={{
-                    '& .MuiListItemText-primary': {
-                      fontWeight: 600,
-                      color: 'text.primary',
-                    },
-                    '& .MuiListItemText-secondary': {
-                      color: 'text.secondary',
-                    },
-                  }}
+                  secondary={`${student.time} ${student.isOneOnOne ? '(1:1)' : ''}`}
                 />
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   {student.isOneOnOne && (
@@ -213,27 +263,28 @@ function AttendanceButton() {
                   <Button
                     variant="contained"
                     onClick={() => handleAttendanceClick(student)}
-                    disabled={attendedStudents.includes(student.id)}
+                    disabled={dateOffset !== 0 || attendedStudents.includes(student.id)}
                     sx={{
-                      bgcolor: !attendedStudents.includes(student.id)
+                      bgcolor: dateOffset === 0 && !attendedStudents.includes(student.id)
                         ? 'primary.main'
                         : 'grey.300',
-                      color: !attendedStudents.includes(student.id)
+                      color: dateOffset === 0 && !attendedStudents.includes(student.id)
                         ? 'primary.contrastText'
                         : 'text.secondary',
                       '&:hover': {
-                        bgcolor: !attendedStudents.includes(student.id)
+                        bgcolor: dateOffset === 0 && !attendedStudents.includes(student.id)
                           ? 'primary.dark'
                           : 'grey.300',
                       },
                     }}
                   >
-                    {attendedStudents.includes(student.id) ? '출석완료' : '출석'}
+                    {dateOffset !== 0 ? '출석 불가' : 
+                     attendedStudents.includes(student.id) ? '출석완료' : '출석'}
                   </Button>
                 </Box>
               </ListItem>
             ))}
-            {todayStudents.length === 0 && (
+            {targetDayStudents.length === 0 && (
               <ListItem>
                 <ListItemText
                   primary="오늘은 예정된 수업이 없습니다."
@@ -251,11 +302,13 @@ function AttendanceButton() {
         <Box
           sx={{
             width: '100%',
+            maxWidth: 600,
             p: 3,
             bgcolor: 'background.paper',
             borderRadius: 2,
             border: '1px solid #DBDBDB',
             textAlign: 'center',
+            mt: 2
           }}
         >
           <Typography
@@ -265,7 +318,11 @@ function AttendanceButton() {
               color: 'text.primary',
             }}
           >
-            오늘 출석: {todayCount}명
+            {dateOffset === 0 ? 
+              `오늘 출석: ${todayCount}명` : 
+              dateOffset < 0 ? 
+                `${currentDay}요일 출석 기록: ${weeklyCount}명` : 
+                '다음 날짜의 예정된 수업'}
           </Typography>
         </Box>
       </Box>

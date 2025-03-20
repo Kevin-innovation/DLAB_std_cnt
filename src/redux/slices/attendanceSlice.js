@@ -7,7 +7,22 @@ const loadState = () => {
     if (serializedState === null) {
       return undefined;
     }
-    return JSON.parse(serializedState);
+    const state = JSON.parse(serializedState);
+    
+    // 날짜 변경 체크
+    const currentDate = new Date().toLocaleDateString();
+    const savedDate = state.lastSavedDate;
+    
+    if (savedDate !== currentDate) {
+      // 날짜가 변경되었으면 초기화된 상태 반환
+      return {
+        ...defaultState,
+        lastSavedDate: currentDate,
+        weeklyAttendance: state.weeklyAttendance || defaultState.weeklyAttendance
+      };
+    }
+    
+    return state;
   } catch (err) {
     return undefined;
   }
@@ -15,9 +30,18 @@ const loadState = () => {
 
 const saveState = (state) => {
   try {
-    const serializedState = JSON.stringify(state);
+    const currentDate = new Date().toLocaleDateString();
+    // 현재 날짜의 출석 정보를 dailyAttendance에 저장
+    state.dailyAttendance[currentDate] = {
+      count: state.todayCount,
+      attendedStudents: state.attendedStudents
+    };
+    
+    const serializedState = JSON.stringify({
+      ...state,
+      lastSavedDate: currentDate
+    });
     localStorage.setItem('attendanceState', serializedState);
-    // 출석 기록 히스토리 저장
     localStorage.setItem('attendanceHistory', JSON.stringify(state.history));
   } catch (err) {
     // Ignore write errors
@@ -28,6 +52,7 @@ const defaultState = {
   todayCount: 0,
   history: {},
   attendedStudents: [],
+  dailyAttendance: {},
   weeklyAttendance: {
     '월': 0,
     '화': 0,
@@ -112,6 +137,9 @@ export const selectWeeklyCount = state => {
   return Object.values(weeklyAttendance).reduce((sum, count) => sum + count, 0);
 };
 export const selectAttendedStudents = state => state.attendance.attendedStudents || [];
+export const selectDailyAttendance = (date) => state => {
+  return state.attendance.dailyAttendance[date] || { count: 0, attendedStudents: [] };
+};
 
 export const { markAttendance, resetDayAttendance, endDay, endWeek } = attendanceSlice.actions;
 

@@ -2,7 +2,6 @@
   "name": "dlab-kevin",
   "version": "0.1.0",
   "private": true,
-
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
@@ -18,7 +17,6 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
-
   "homepage": "https://kevin-innovation.github.io/DLAB_std_cnt",
   "scripts": {
     "predeploy": "npm run build",
@@ -27,7 +25,6 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
-    
   },
   "eslintConfig": {
     "extends": [
