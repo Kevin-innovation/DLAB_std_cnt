@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/DLAB_std_cnt/static/css/main.e6c13ad2.css",
+    "main.js": "/DLAB_std_cnt/static/js/main.a303116a.js",
+    "index.html": "/DLAB_std_cnt/index.html",
+    "main.e6c13ad2.css.map": "/DLAB_std_cnt/static/css/main.e6c13ad2.css.map",
+    "main.a303116a.js.map": "/DLAB_std_cnt/static/js/main.a303116a.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.a303116a.js"
+  ]
+}
